@@ -18,6 +18,30 @@ Plateforme de **drops** de sneakers en édition limitée : un drop met en vente 
 | API (`backend/`) | Python 3.12, FastAPI, SQLAlchemy 2, SQLite en local ou PostgreSQL, pytest, Ruff |
 | Front (`frontend/`) | React 19, Vite, TypeScript, ESLint, Vitest + Testing Library, Playwright |
 
+## Lancer le projet avec Docker (recommandé)
+
+Prérequis : Docker avec Docker Compose. Rien d'autre à installer.
+
+```bash
+cp .env.example .env          # Windows PowerShell : Copy-Item .env.example .env
+docker compose up -d --build
+```
+
+| Service | Adresse | Rôle |
+|---|---|---|
+| `front` | <http://localhost:8080> | site servi par nginx, qui redirige `/api/` vers l'API |
+| `api` | <http://localhost:8000> | API FastAPI (documentation sur `/docs`) |
+| `db` | interne | PostgreSQL 16, données dans le volume `db-data` |
+
+Commandes utiles :
+
+```bash
+docker compose ps             # état des services (db doit être "healthy")
+docker compose logs -f api    # suivre les logs de l'API
+docker compose down           # arrêter (les données sont conservées)
+docker compose down -v        # arrêter ET supprimer les données
+```
+
 ## Lancer le projet en local (sans Docker)
 
 Prérequis : Git, Python 3.12 ou plus récent, Node.js 22.12 ou plus récent.
@@ -96,6 +120,9 @@ La configuration passe par des variables d'environnement (ou un fichier `backend
 | `CORS_ORIGINS` | origines autorisées, séparées par des virgules (front servi depuis un autre domaine) | vide |
 | `VITE_API_URL` | URL de l'API pour le front, fixée au build | `/api` |
 | `API_PROXY_TARGET` | API vers laquelle `npm run dev` redirige `/api` | `http://localhost:8000` |
+| `POSTGRES_USER` | utilisateur PostgreSQL (Docker Compose) | dans `.env` |
+| `POSTGRES_PASSWORD` | mot de passe PostgreSQL (Docker Compose) | dans `.env` |
+| `POSTGRES_DB` | nom de la base (Docker Compose) | dans `.env` |
 
 ## Structure du projet
 
@@ -118,7 +145,7 @@ La configuration passe par des variables d'environnement (ou un fichier `backend
 ## Avancement du TP
 
 - [x] Partie 1 : dépôt remis d'aplomb (audit, contribution, `main` protégée, version `v0.1.0`)
-- [ ] Partie 2 : conteneurisation (Docker, Compose)
+- [x] Partie 2 : conteneurisation (Docker, Compose)
 - [ ] Partie 3 : intégration continue (GitHub Actions)
 - [ ] Partie 4 : déploiement continu (ghcr.io, GitHub Pages, releases)
 - [ ] Partie 5 : observabilité (health checks, logs JSON, métriques, Uptime Kuma)
