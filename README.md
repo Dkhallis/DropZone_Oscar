@@ -27,7 +27,7 @@ Prérequis : Git, Python 3.12 ou plus récent, Node.js 22.12 ou plus récent.
 ```bash
 cd backend
 python3 -m venv .venv
-source .venv/bin/activate              # Windows : .venv\Scripts\activate
+source .venv/bin/activate              # Windows PowerShell : .\.venv\Scripts\Activate.ps1
 pip install -r requirements-dev.txt
 uvicorn app.main:app --reload
 ```
@@ -115,13 +115,27 @@ La configuration passe par des variables d'environnement (ou un fichier `backend
 
 ## Ce qu'il reste à faire
 
-Le détail des consignes est dans la fiche **« TP DropZone »**. En résumé :
+## Avancement du TP
 
-1. Remettre le dépôt d'aplomb : README, branche `main` protégée, Conventional Commits, première version taguée.
-2. Conteneuriser : images Docker de l'API et du front, `compose.yml` avec PostgreSQL, `.env.example`.
-3. Intégration continue : workflow GitHub Actions (lint, tests, E2E), tests manquants, badge.
-4. Déploiement continu : images publiées sur ghcr.io, front sur GitHub Pages, release à chaque tag.
-5. Observer : health checks Docker, logs structurés, métriques `/metrics`, supervision avec Uptime Kuma.
+- [x] Partie 1 : dépôt remis d'aplomb (audit, contribution, `main` protégée, version `v0.1.0`)
+- [ ] Partie 2 : conteneurisation (Docker, Compose)
+- [ ] Partie 3 : intégration continue (GitHub Actions)
+- [ ] Partie 4 : déploiement continu (ghcr.io, GitHub Pages, releases)
+- [ ] Partie 5 : observabilité (health checks, logs JSON, métriques, Uptime Kuma)
+
+## Contribuer
+
+Toute modification passe par une branche et une pull request vers `main`, protégée contre les push directs.
+Les commits suivent la convention [Conventional Commits](https://www.conventionalcommits.org/fr/).
+Le détail (nommage des branches, format des commits, cycle d'une PR, versions) est dans [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Documentation du dépôt
+
+| Fichier | Contenu |
+|---|---|
+| [AUDIT.md](AUDIT.md) | audit DevOps du dépôt de départ |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | règles de contribution |
+| [CHANGELOG.md](CHANGELOG.md) | historique des versions |
 
 ## Licence
 
