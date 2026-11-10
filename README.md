@@ -110,6 +110,49 @@ Pour lancer un job en local avec [act](https://github.com/nektos/act) (Docker re
 ```bash
 act pull_request -j tests-backend
 ```
+## Déploiement
+
+### Publier une version
+
+1. Mettre à jour le `CHANGELOG.md` (renommer `[Unreleased]` en `[x.y.z] - date`) et merger la PR.
+2. Poser un tag annoté sur `main` et le pousser :
+
+   ```bash
+   git switch main && git pull
+   git tag -a v0.2.0 -m "v0.2.0"
+   git push origin v0.2.0
+   ```
+
+Le workflow [`.github/workflows/cd.yml`](.github/workflows/cd.yml) publie alors :
+
+- les images `ghcr.io/dkhallis/dropzone-api` et `ghcr.io/dkhallis/dropzone-front`, taguées `0.2.0`, `0.2` et `sha-xxxxxxx` ;
+- le front sur GitHub Pages : <https://dkhallis.github.io/DropZone_Oscar/> ;
+- une release GitHub avec des notes générées.
+
+Les tests ne sont pas relancés : le tag est posé sur un commit de `main`, déjà validé par la CI obligatoire.
+
+### Lancer une version publiée
+
+Choisir la version dans `.env` (`VERSION=0.2.0`), puis :
+
+```bash
+docker compose -f compose.release.yml up -d
+docker compose -f compose.release.yml ps     # la colonne IMAGE montre la version lancée
+```
+
+### Revenir à la version précédente (rollback)
+
+1. Dans `.env`, remettre l'ancienne version : `VERSION=0.2.0`.
+2. Relancer :
+
+   ```bash
+   docker compose -f compose.release.yml up -d
+   docker compose -f compose.release.yml ps
+   ```
+
+Le retour prend quelques secondes : aucune image n'est reconstruite, Compose réutilise l'image déjà publiée de l'ancienne version.
+
+**Ce qui ne revient pas en arrière :** les données de la base (volume `db-data`) et son schéma. Les commandes passées entre-temps sont conservées, et une nouvelle version qui modifierait le schéma devrait rester compatible avec l'ancienne.
 
 ## API
 
@@ -169,7 +212,7 @@ La configuration passe par des variables d'environnement (ou un fichier `backend
 - [x] Partie 1 : dépôt remis d'aplomb (audit, contribution, `main` protégée, version `v0.1.0`)
 - [x] Partie 2 : conteneurisation (Docker, Compose)
 - [X] Partie 3 : intégration continue (GitHub Actions)
-- [ ] Partie 4 : déploiement continu (ghcr.io, GitHub Pages, releases)
+- [X] Partie 4 : déploiement continu (ghcr.io, GitHub Pages, releases)
 - [ ] Partie 5 : observabilité (health checks, logs JSON, métriques, Uptime Kuma)
 
 ## Contribuer

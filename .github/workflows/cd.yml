@@ -1,0 +1,129 @@
+name: CD
+
+on:
+  push:
+    tags: ["v*"]
+
+# Aucun droit par défaut : chaque job demande uniquement ce dont il a besoin
+permissions: {}
+
+jobs:
+  # ---------- 1. Images Docker sur ghcr.io (API et front, un seul job grâce à la matrice) ----------
+  images:
+    name: image ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read     # lire le code
+      packages: write    # publier sur ghcr.io
+    strategy:
+      matrix:
+        include:
+          - image: dropzone-api
+            context: backend
+          - image: dropzone-front
+            context: frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      # ghcr.io exige des noms en minuscules (Dkhallis -> dkhallis)
+      - name: Nom du propriétaire en minuscules
+        run: echo "OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
+
+      - uses: docker/setup-buildx-action@v4
+
+      # Connexion avec le jeton automatique du workflow : aucun mot de passe à créer
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Tags de l'image : 0.2.0, 0.2 et sha-xxxxxxx
+      - id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ env.OWNER }}/${{ matrix.image }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      - uses: docker/build-push-action@v7
+        with:
+          context: ${{ matrix.context }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+
+  # ---------- 2. Construction du front pour GitHub Pages ----------
+  pages-build:
+    name: build GitHub Pages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Installer les dépendances
+        run: npm ci
+
+      # Pages sert le site sous /<nom-du-repo>/, pas à la racine
+      - name: Build du front
+        env:
+          # URL publique de l'API (variable du dépôt) ; sans API publique, la page affiche « L'API est injoignable »
+          VITE_API_URL: ${{ vars.API_PUBLIC_URL || 'http://localhost:8000' }}
+        run: npm run build -- --base=/${{ github.event.repository.name }}/
+
+      # Recharger une URL comme /drops/3 renverrait une 404 : on sert index.html à la place
+      - name: Page 404 de secours pour React Router
+        run: cp dist/index.html dist/404.html
+
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: frontend/dist
+
+  # ---------- 3. Publication sur GitHub Pages ----------
+  pages-deploy:
+    name: déploiement GitHub Pages
+    needs: pages-build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write      # publier sur Pages
+      id-token: write   # prouver l'identité du workflow auprès de Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
+
+  # ---------- 4. Release GitHub, une fois les images et Pages publiées ----------
+  release:
+    name: release GitHub
+    needs: [images, pages-deploy]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # créer la release
+    steps:
+      - name: Créer la release avec des notes générées
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "$GITHUB_REF_NAME"
+          --repo "$GITHUB_REPOSITORY"
+          --title "$GITHUB_REF_NAME"
+          --generate-notes
+          --verify-tag

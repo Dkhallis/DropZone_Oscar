@@ -7,6 +7,8 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-10
+
 ### Added
 
 - Image Docker multi-stage de l'API, lancée par un utilisateur non-root sur le port 8000.
@@ -22,6 +24,8 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 - Workflow d'intégration continue (`.github/workflows/ci.yml`) : lint, tests backend, tests frontend, puis E2E.
 - Configuration de `act` (`.actrc`) pour lancer les workflows en local.
 - Badge de la CI dans le README.
+- Workflow de déploiement continu (`.github/workflows/cd.yml`) déclenché par un tag `v*` : images sur ghcr.io, front sur GitHub Pages, release GitHub.
+- `compose.release.yml` pour lancer une version publiée, et procédure de rollback dans le README.
 
 ### Changed
 
@@ -42,5 +46,6 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 - Branche `main` protégée : pull request obligatoire, push direct et force push interdits.
 - README : commande d'activation de l'environnement virtuel sous Windows PowerShell.
 
-[Unreleased]: https://github.com/Dkhallis/DropZone_Oscar/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Dkhallis/DropZone_Oscar/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Dkhallis/DropZone_Oscar/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Dkhallis/DropZone_Oscar/releases/tag/v0.1.0
