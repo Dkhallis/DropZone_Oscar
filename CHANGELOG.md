@@ -16,11 +16,17 @@ et le projet respecte le [versionnage sémantique](https://semver.org/lang/fr/).
 - `.env.example` listant les variables nécessaires.
 - Journal des modifications (`CHANGELOG.md`).
 - Modèle de pull request (`.github/pull_request_template.md`).
+- Tests des commandes côté API (`backend/tests/test_orders.py`).
+- Test Vitest du composant `DropCard`.
+- Scénarios Playwright : « commander décrémente le stock » et « un drop épuisé désactive le bouton ».
+- Workflow d'intégration continue (`.github/workflows/ci.yml`) : lint, tests backend, tests frontend, puis E2E.
+- Configuration de `act` (`.actrc`) pour lancer les workflows en local.
+- Badge de la CI dans le README.
 
 ### Changed
 
 - README : lancement avec Docker Compose.
-
+- Branche `main` : les jobs de la CI deviennent des vérifications obligatoires.
 ## [0.1.0] - 2026-11-09
 
 ### Added
